@@ -23,6 +23,9 @@ const {
 	hideUpdateDate = false,
 } = Astro.props;
 const className = Astro.props.class;
+
+const startAt = 0;
+const urlPath = Astro.url.pathname;
 ---
 
 <div class:list={["flex flex-wrap text-neutral-500 dark:text-neutral-400 items-center gap-4 gap-x-4 gap-y-2", className]}>
@@ -61,6 +64,16 @@ const className = Astro.props.class;
         </div>
     </div>
 
+    <!-- view stats -->
+    <div class="flex items-center space-x-1">
+      <div class="meta-icon">
+        <Icon name="material-symbols:visibility-outline-rounded" class="text-xl" />
+      </div>
+      <span id="umami-pv" class="text-50 text-sm font-medium">loading…</span>
+      <span>/</span>
+      <span id="umami-visits" class="text-50 text-sm font-medium">loading…</span>
+    </div>
+
     <!-- tags -->
     <div class:list={["items-center", {"flex": !hideTagsForMobile, "hidden md:flex": hideTagsForMobile}]}>
         <div class="meta-icon"
@@ -80,3 +93,38 @@ const className = Astro.props.class;
         </div>
     </div>
 </div>
+
+<script type="module">
+  const pvEl = document.getElementById("umami-pv");
+  const visitsEl = document.getElementById("umami-visits");
+
+  const startAt = 0;
+  const endAt = Date.now();
+  const url = window.location.pathname;
+
+  const api = new URL('https://us.umami.is/api/websites/d1844d92-ae49-43d6-8e9a-907ffd4b4e41/stats');
+  api.searchParams.set('startAt', startAt);
+  api.searchParams.set('endAt', endAt);
+  api.searchParams.set('url', url);
+  api.searchParams.set('compare', "false");
+  api.searchParams.set('unit', "hour");
+  api.searchParams.set('timezone', "Asia/Shanghai");
+
+  fetch(api.toString(), {
+    method: 'GET',
+    headers: {
+      'x-umami-share-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3ZWJzaXRlSWQiOiJkMTg0NGQ5Mi1hZTQ5LTQzZDYtOGU5YS05MDdmZmQ0YjRlNDEiLCJpYXQiOjE3NTIzOTIwNTd9.6jFE304NjdNoZeBhRRucmDPD5rmOBjNLPSkT2I-w7WY'
+    }
+  })
+  .then(r => r.ok ? r.json() : Promise.reject(r))
+  .then(data => {
+    pvEl.textContent = data.pageviews?.value?.toLocaleString() ?? '-';
+    visitsEl.textContent = data.visits?.value?.toLocaleString() ?? '-';
+    console.info(api.toString())
+  })
+  .catch(err => {
+    console.error('Umami 请求失败', err);
+    pvEl.textContent = '-';
+    visitsEl.textContent = '-';
+  });
+</script>

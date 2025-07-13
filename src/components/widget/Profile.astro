@@ -33,7 +33,57 @@ const config = profileConfig;
                 <Icon name={config.links[0].icon} class="text-[1.5rem]"></Icon>
                 {config.links[0].name}
             </a>}
+            <div class="flex items-center justify-center gap-1">
+              <svg width="1em" height="1em" class="text-base" data-icon="material-symbols:visibility-outline">
+                <symbol id="ai:material-symbols:visibility-outline" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M12 16q1.875 0 3.188-1.312T16.5 11.5t-1.312-3.187T12 7T8.813 8.313T7.5 11.5t1.313 3.188T12 16m0-1.8q-1.125 0-1.912-.788T9.3 11.5t.788-1.912T12 8.8t1.913.788t.787 1.912t-.787 1.913T12 14.2m0 4.8q-3.65 0-6.65-2.037T1 11.5q1.35-3.425 4.35-5.462T12 4t6.65 2.038T23 11.5q-1.35 3.425-4.35 5.463T12 19m0-2q2.825 0 5.188-1.487T20.8 11.5q-1.25-2.525-3.613-4.012T12 6T6.813 7.488T3.2 11.5q1.25 2.525 3.613 4.013T12 17"
+                    data-darkreader-inline-fill=""
+                    style="--darkreader-inline-fill: currentColor;"
+                  ></path>
+                </symbol>
+                <use href="#ai:material-symbols:visibility-outline"></use>
+              </svg>
+              <span id="pv" class="text-50 text-sm font-medium">loading…</span>
+              <span>/</span>
+              <span id="visits" class="text-50 text-sm font-medium">loading…</span>
+            </div>
         </div>
     </div>
 </div>
 
+<script type="module">
+  const pvEl = document.getElementById("pv");
+  const visitsEl = document.getElementById("visits");
+
+  const startAt = 0;
+  const endAt = Date.now();
+  const url = window.location.pathname;
+
+  const api = new URL('https://us.umami.is/api/websites/d1844d92-ae49-43d6-8e9a-907ffd4b4e41/stats');
+  api.searchParams.set('startAt', startAt);
+  api.searchParams.set('endAt', endAt);
+  api.searchParams.set('url', "/");
+  api.searchParams.set('compare', "false");
+  api.searchParams.set('unit', "hour");
+  api.searchParams.set('timezone', "Asia/Shanghai");
+
+  fetch(api.toString(), {
+    method: 'GET',
+    headers: {
+      'x-umami-share-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3ZWJzaXRlSWQiOiJkMTg0NGQ5Mi1hZTQ5LTQzZDYtOGU5YS05MDdmZmQ0YjRlNDEiLCJpYXQiOjE3NTIzOTIwNTd9.6jFE304NjdNoZeBhRRucmDPD5rmOBjNLPSkT2I-w7WY'
+    }
+  })
+  .then(r => r.ok ? r.json() : Promise.reject(r))
+  .then(data => {
+    pvEl.textContent = data.pageviews?.value?.toLocaleString() ?? '-';
+    visitsEl.textContent = data.visits?.value?.toLocaleString() ?? '-';
+    console.info(api.toString())
+  })
+  .catch(err => {
+    console.error('Umami 请求失败', err);
+    pvEl.textContent = '-';
+    visitsEl.textContent = '-';
+  });
+</script>
